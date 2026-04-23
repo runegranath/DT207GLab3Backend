@@ -24,30 +24,24 @@ mongoose
     console.error("Error connecting to database", error);
   });
 
-// Jobb-Schema med validering, fiktion är per default false 
+// Jobb-Schema med inbyggd validering, fiktion är per default false
 const jobSchema = new mongoose.Schema({
   companyname: { type: String, required: true },
   jobtitle: { type: String, required: [true, "Jobbtitel saknas"] },
   location: { type: String, required: [true, "Plats saknas"] },
-  fictive: { type: Boolean, required: [true, "Fiktionsstatus saknas" ], default: false },
+  fictive: {
+    type: Boolean,
+    required: [true, "Fiktionsstatus saknas"],
+    default: false,
+  },
 });
 
-const Job = mongoose.model("Job", jobSchema);
+const Job = mongoose.model("Job", jobSchema); // Skapa modell baserat på schema
 
 // -- ROUTES --
-app.get("/jobs", (req, res) => {
-  Job.find()
-    .then((jobs) => {
-      res.json(jobs);
-    })
-    .catch((error) => {
-      res.status(500).json({ error: "Error fetching jobs" });
-    });
-});
-
 app.get("/jobs/", async (req, res) => {
   try {
-    let result = await Job.find({});
+    let result = await Job.find({}); // Hitta alla jobb i kollektionen
 
     return res.json(result);
   } catch (error) {
@@ -62,6 +56,54 @@ app.post("/jobs", async (req, res) => {
     return res.json(result);
   } catch (error) {
     return res.status(400).json(error); // klientdatafel
+  }
+});
+
+// Hämta ett specifikt jobb med ID
+app.get("/jobs/:id", async (req, res) => {
+  try {
+    const job = await Job.findById(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({ message: "Jobbet hittades inte" }); // Om inget jobb hittas returnera 404 Not Found och meddelande
+    }
+
+    return res.json(job);
+  } catch (error) {
+    return res.status(500).json(error);
+  }
+});
+
+// Uppdatera ett jobb
+app.put("/jobs/:id", async (req, res) => {
+  try {
+    // Uppdatera jobb med id och data från request body
+    const job = await Job.findByIdAndUpdate(req.params.id, req.body, {
+      new: true, // Returnera det uppdaterade dokumentet istället för det gamla
+    });
+
+    if (!job) {
+      return res.status(404).json({ message: "Jobbet hittades inte" });
+    }
+
+    return res.json(job);
+  } catch (error) {
+    return res.status(400).json(error);
+  }
+});
+
+// Deleterutt
+app.delete("/jobs/:id", async (req, res) => {
+  try {
+    const job = await Job.findByIdAndDelete(req.params.id);
+
+    if (!job) {
+      return res.status(404).json({ message: "Jobbet hittades inte" }); 
+    }
+
+    return res.json({ message: "Jobbet raderat" });
+  } catch (error) {
+    return res.status(500).json(error); // 500 Internal Server Error
   }
 });
 
