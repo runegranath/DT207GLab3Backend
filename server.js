@@ -98,7 +98,7 @@ app.delete("/jobs/:id", async (req, res) => {
     const job = await Job.findByIdAndDelete(req.params.id);
 
     if (!job) {
-      return res.status(404).json({ message: "Jobbet hittades inte" }); 
+      return res.status(404).json({ message: "Jobbet hittades inte" });
     }
 
     return res.json({ message: "Jobbet raderat" });
