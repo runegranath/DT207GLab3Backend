@@ -1,6 +1,7 @@
 /*
 Webbtjänst med MongoDB och Express
 */
+require('dotenv').config(); // Ladda miljövariabler från .env
 
 const express = require("express");
 const cors = require("cors");
@@ -16,7 +17,7 @@ app.use(express.json());
 
 //Connect to MongoDB
 mongoose
-  .connect("mongodb+srv://rugr2500_db_user:majsmajs@cluster0.wheqvgt.mongodb.net/?appName=Cluster0")
+  .connect(process.env.MONGODB_URI)
   .then(() => {
     console.log("Connected to MongoDB");
   })
