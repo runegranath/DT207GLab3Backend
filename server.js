@@ -1,7 +1,7 @@
 /*
 Webbtjänst med MongoDB och Express
 */
-require('dotenv').config(); // Ladda miljövariabler från .env
+require("dotenv").config(); // Ladda miljövariabler från .env
 
 const express = require("express");
 const cors = require("cors");
@@ -27,12 +27,11 @@ mongoose
 
 // Jobb-Schema med inbyggd validering, fiktion är per default false
 const jobSchema = new mongoose.Schema({
-  companyname: { type: String, required: true },
+  companyname: { type: String, required: [true, "Företagsnamn saknas"] },
   jobtitle: { type: String, required: [true, "Jobbtitel saknas"] },
   location: { type: String, required: [true, "Plats saknas"] },
   fictive: {
     type: Boolean,
-    required: [true, "Fiktionsstatus saknas"],
     default: false,
   },
 });
@@ -79,17 +78,18 @@ app.get("/jobs/:id", async (req, res) => {
 app.put("/jobs/:id", async (req, res) => {
   try {
     // Uppdatera jobb med id och data från request body
-    const job = await Job.findByIdAndUpdate(req.params.id, req.body, {
+    const updatedJob = await Job.findByIdAndUpdate(req.params.id, req.body, {
       new: true, // Returnera det uppdaterade dokumentet istället för det gamla
+      runValidators: true, // kör validering även på uppdateringen
     });
 
-    if (!job) {
+    if (!updatedJob) {
       return res.status(404).json({ message: "Jobbet hittades inte" });
     }
 
-    return res.json(job);
+    return res.json(updatedJob);
   } catch (error) {
-    return res.status(400).json(error);
+    return res.status(500).json(error); // om validering misslyckas eller annat fel
   }
 });
 
